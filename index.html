@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>System Info Panel</title>
+  <title>System Info Panel (offline)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -32,12 +32,12 @@
   </style>
 </head>
 <body>
-  <div class="line moai"><div class="label">MOAI:</div><div class="value" id="browser">загрузка...</div></div>
-  <div class="line ip"><div class="label">IP ENTRANCE:</div><div class="value" id="ip">загрузка...</div></div>
-  <div class="line isp"><div class="label">DIGITAL SUPPLIER:</div><div class="value" id="isp">загрузка...</div></div>
+  <div class="line moai"><div class="label">MOAI:</div><div class="value" id="browser">—</div></div>
+  <div class="line ip"><div class="label">IP ENTRANCE:</div><div class="value" id="ip">—</div></div>
+  <div class="line isp"><div class="label">DIGITAL SUPPLIER:</div><div class="value" id="isp">—</div></div>
   <div class="line support"><div class="label">SUPPORT CODE:</div><div class="value" id="support">—</div></div>
   <div class="line session"><div class="label">SESSION ID:</div><div class="value" id="session">—</div></div>
-  <div class="line speed"><div class="label">THROUGHPUT CAPACITY:</div><div class="value" id="speed">измеряется...</div></div>
+  <div class="line speed"><div class="label">THROUGHPUT CAPACITY:</div><div class="value" id="speed">—</div></div>
   <div class="line meta"><div class="label">THINKSECURE_deliveryMETA:</div><div class="value" id="meta">—</div></div>
 
 <script>
@@ -46,6 +46,29 @@
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const len = Math.floor(Math.random() * (max - min + 1)) + min;
     return Array.from({length: len}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  }
+
+  // генерация фейкового IP
+  function fakeIP() {
+    return Array(4).fill(0).map(() => Math.floor(Math.random()*256)).join('.');
+  }
+
+  // фейковый провайдер
+  function fakeISP() {
+    const list = [
+      "ThinkSecure Networks",
+      "GlobalNet ISP",
+      "FiberLink Communications",
+      "SkyWave Telecom",
+      "NextGen Broadband"
+    ];
+    return list[Math.floor(Math.random()*list.length)];
+  }
+
+  // фейковая скорость
+  function fakeSpeed() {
+    const base = 50 + Math.random() * 100; // от 50 до 150
+    return base.toFixed(2) + " Mbps";
   }
 
   // определение браузера
@@ -61,40 +84,14 @@
     return ua || 'Неизвестный';
   }
 
-  // получаем IP и провайдера
-  async function fetchIP() {
-    try {
-      const r = await fetch("https://ipwho.is/");
-      const d = await r.json();
-      document.getElementById("ip").textContent = d.ip || "недоступно";
-      document.getElementById("isp").textContent = d.connection && d.connection.isp ? d.connection.isp : "недоступно";
-    } catch (e) {
-      console.error("IP fetch error:", e);
-      document.getElementById("ip").textContent = "недоступно";
-      document.getElementById("isp").textContent = "недоступно";
-    }
-  }
-
-  // тест скорости (скачиваем маленькую картинку)
-  async function measureSpeed() {
-    const el = document.getElementById("speed");
-    try {
-      const url = "https://via.placeholder.com/800x600.png?nocache=" + Math.random();
-      const start = performance.now();
-      const r = await fetch(url);
-      const blob = await r.blob();
-      const end = performance.now();
-      const sizeMb = blob.size / (1024 * 1024);
-      const sec = (end - start) / 1000;
-      const mbps = (sizeMb * 8 / sec);
-      el.textContent = isFinite(mbps) && mbps > 0 ? mbps.toFixed(2) + " Mbps" : "недоступно";
-    } catch (e) {
-      console.error("Speed test error:", e);
-      el.textContent = "недоступно";
-    }
-  }
-
-  // инициализация
+  // заполнение данных
   document.getElementById("browser").textContent = getBrowser();
+  document.getElementById("ip").textContent = fakeIP();
+  document.getElementById("isp").textContent = fakeISP();
   document.getElementById("support").textContent = randCode();
   document.getElementById("session").textContent = randCode();
+  document.getElementById("speed").textContent = fakeSpeed();
+  document.getElementById("meta").textContent = randCode();
+</script>
+</body>
+</html>
