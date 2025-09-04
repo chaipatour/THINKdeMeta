@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>System Info Panel (offline)</title>
+  <title>System Info Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -29,16 +29,28 @@
     .session .value { color: #6a1b9a; }
     .speed .value { color: #0277bd; }
     .meta .value { color: #ad1457; }
+
+    /* анимация загрузки */
+    .loading::after {
+      content: ' .';
+      animation: dots 1.5s steps(3, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ' .'; }
+      33%  { content: ' ..'; }
+      66%  { content: ' ...'; }
+      100% { content: ' .'; }
+    }
   </style>
 </head>
 <body>
-  <div class="line moai"><div class="label">MOAI:</div><div class="value" id="browser">—</div></div>
-  <div class="line ip"><div class="label">IP ENTRANCE:</div><div class="value" id="ip">—</div></div>
-  <div class="line isp"><div class="label">DIGITAL SUPPLIER:</div><div class="value" id="isp">—</div></div>
-  <div class="line support"><div class="label">SUPPORT CODE:</div><div class="value" id="support">—</div></div>
-  <div class="line session"><div class="label">SESSION ID:</div><div class="value" id="session">—</div></div>
-  <div class="line speed"><div class="label">THROUGHPUT CAPACITY:</div><div class="value" id="speed">—</div></div>
-  <div class="line meta"><div class="label">THINKSECURE_deliveryMETA:</div><div class="value" id="meta">—</div></div>
+  <div class="line moai"><div class="label">MOAI:</div><div class="value loading" id="browser">loading</div></div>
+  <div class="line ip"><div class="label">IP ENTRANCE:</div><div class="value loading" id="ip">loading</div></div>
+  <div class="line isp"><div class="label">DIGITAL SUPPLIER:</div><div class="value loading" id="isp">loading</div></div>
+  <div class="line support"><div class="label">SUPPORT CODE:</div><div class="value loading" id="support">loading</div></div>
+  <div class="line session"><div class="label">SESSION ID:</div><div class="value loading" id="session">loading</div></div>
+  <div class="line speed"><div class="label">THROUGHPUT CAPACITY:</div><div class="value loading" id="speed">loading</div></div>
+  <div class="line meta"><div class="label">THINKSECURE_deliveryMETA:</div><div class="value loading" id="meta">loading</div></div>
 
 <script>
   // генератор случайных кодов (8–14 символов)
@@ -48,26 +60,22 @@
     return Array.from({length: len}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
   }
 
-  // генерация фейкового IP
+  // фейковый IP
   function fakeIP() {
     return Array(4).fill(0).map(() => Math.floor(Math.random()*256)).join('.');
   }
 
-  // фейковый провайдер
+  // провайдеры
   function fakeISP() {
-    const list = [
-      "ThinkSecure Networks",
-      "GlobalNet ISP",
-      "FiberLink Communications",
-      "SkyWave Telecom",
-      "NextGen Broadband"
-    ];
-    return list[Math.floor(Math.random()*list.length)];
+    const roll = Math.random();
+    if (roll < 0.1) return "Российские магистральные интернет-сети (RBIN)";
+    if (roll < 0.55) return "AEZA HOSTING INT";
+    return "Virgin Conncet";
   }
 
   // фейковая скорость
   function fakeSpeed() {
-    const base = 50 + Math.random() * 100; // от 50 до 150
+    const base = 70 + Math.random() * 30; // от 70 до 100
     return base.toFixed(2) + " Mbps";
   }
 
@@ -84,14 +92,23 @@
     return ua || 'Неизвестный';
   }
 
-  // заполнение данных
-  document.getElementById("browser").textContent = getBrowser();
-  document.getElementById("ip").textContent = fakeIP();
-  document.getElementById("isp").textContent = fakeISP();
-  document.getElementById("support").textContent = randCode();
-  document.getElementById("session").textContent = randCode();
-  document.getElementById("speed").textContent = fakeSpeed();
-  document.getElementById("meta").textContent = randCode();
+  // пошаговая "загрузка"
+  function delayedFill(id, generator, delay) {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.textContent = typeof generator === "function" ? generator() : generator;
+      el.classList.remove("loading");
+    }, delay);
+  }
+
+  // запуск анимации по шагам
+  delayedFill("browser", getBrowser, 1000);
+  delayedFill("ip", fakeIP, 2000);
+  delayedFill("isp", fakeISP, 3000);
+  delayedFill("support", randCode, 4000);
+  delayedFill("session", randCode, 5000);
+  delayedFill("speed", fakeSpeed, 6000);
+  delayedFill("meta", randCode, 7000);
 </script>
 </body>
 </html>
