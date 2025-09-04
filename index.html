@@ -6,94 +6,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      background: #0d1117;
-      color: #fff;
+      background: #ffffff;
+      color: #111;
       font-family: Consolas, monospace;
       padding: 20px;
     }
-    .line {
-      margin: 6px 0;
-      font-size: 15px;
+    .line { 
+      margin: 10px 0; 
+      font-size: 15px; 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 10px; 
     }
-    .label {
-      font-weight: bold;
-    }
+    .label { font-weight: bold; min-width: 260px; }
+    .value { font-weight: 600; }
+
     /* разные цвета */
-    .moai { color: #58a6ff; }
-    .ip { color: #ff7b72; }
-    .isp { color: #f2cc60; }
-    .support { color: #a5d6a7; }
-    .session { color: #c792ea; }
-    .speed { color: #64b5f6; }
-    .meta { color: #ef9a9a; }
+    .moai .value { color: #1565c0; }
+    .ip .value { color: #c62828; }
+    .isp .value { color: #ef6c00; }
+    .support .value { color: #2e7d32; }
+    .session .value { color: #6a1b9a; }
+    .speed .value { color: #0277bd; }
+    .meta .value { color: #ad1457; }
   </style>
 </head>
 <body>
-  <div class="line moai"><span class="label">MOAI:</span> <span id="browser">loading...</span></div>
-  <div class="line ip"><span class="label">IP ENTRANCE:</span> <span id="ip">loading...</span></div>
-  <div class="line isp"><span class="label">DIGITAL SUPPLIER:</span> <span id="isp">loading...</span></div>
-  <div class="line support"><span class="label">SUPPORT CODE:</span> <span id="support">loading...</span></div>
-  <div class="line session"><span class="label">SESSION ID:</span> <span id="session">loading...</span></div>
-  <div class="line speed"><span class="label">THROUGHPUT CAPACITY:</span> <span id="speed">measuring...</span></div>
-  <div class="line meta"><span class="label">THINKSECURE_deliveryMETA:</span> <span id="meta">loading...</span></div>
+  <div class="line moai"><div class="label">MOAI:</div><div class="value" id="browser">загрузка...</div></div>
+  <div class="line ip"><div class="label">IP ENTRANCE:</div><div class="value" id="ip">загрузка...</div></div>
+  <div class="line isp"><div class="label">DIGITAL SUPPLIER:</div><div class="value" id="isp">загрузка...</div></div>
+  <div class="line support"><div class="label">SUPPORT CODE:</div><div class="value" id="support">—</div></div>
+  <div class="line session"><div class="label">SESSION ID:</div><div class="value" id="session">—</div></div>
+  <div class="line speed"><div class="label">THROUGHPUT CAPACITY:</div><div class="value" id="speed">измеряется...</div></div>
+  <div class="line meta"><div class="label">THINKSECURE_deliveryMETA:</div><div class="value" id="meta">—</div></div>
 
 <script>
-  // --- random generator (8–14 символов) ---
-  function randCode(min=8, max=14) {
+  // генератор случайных кодов (8–14 символов)
+  function randCode(min = 8, max = 14) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const len = Math.floor(Math.random() * (max - min + 1)) + min;
     return Array.from({length: len}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
   }
 
-  // --- detect browser ---
+  // определение браузера
   function getBrowser() {
-    const ua = navigator.userAgent;
-    if (/Edg\//.test(ua)) return "Edge " + (ua.match(/Edg\/([\d\.]+)/)||[])[1];
-    if (/OPR\//.test(ua)) return "Opera " + (ua.match(/OPR\/([\d\.]+)/)||[])[1];
-    if (/Chrome\//.test(ua) && !/Chromium/.test(ua)) return "Chrome " + (ua.match(/Chrome\/([\d\.]+)/)||[])[1];
-    if (/Firefox\//.test(ua)) return "Firefox " + (ua.match(/Firefox\/([\d\.]+)/)||[])[1];
-    if (/Safari\//.test(ua) && /Version\//.test(ua)) return "Safari " + (ua.match(/Version\/([\d\.]+)/)||[])[1];
-    return ua;
+    const ua = navigator.userAgent || '';
+    try {
+      if (/Edg\//.test(ua)) return "Edge " + (ua.match(/Edg\/([\d\.]+)/)||[])[1];
+      if (/OPR\//.test(ua)) return "Opera " + (ua.match(/OPR\/([\d\.]+)/)||[])[1];
+      if (/Chrome\//.test(ua) && !/Chromium/.test(ua)) return "Chrome " + (ua.match(/Chrome\/([\d\.]+)/)||[])[1];
+      if (/Firefox\//.test(ua)) return "Firefox " + (ua.match(/Firefox\/([\d\.]+)/)||[])[1];
+      if (/Safari\//.test(ua) && /Version\//.test(ua)) return "Safari " + (ua.match(/Version\/([\d\.]+)/)||[])[1];
+    } catch {}
+    return ua || 'Неизвестный';
   }
 
-  // --- fetch IP + ISP ---
+  // получаем IP и провайдера
   async function fetchIP() {
     try {
-      const res = await fetch("https://ipapi.co/json/");
-      const data = await res.json();
-      document.getElementById("ip").textContent = data.ip || "unknown";
-      document.getElementById("isp").textContent = data.org || "unknown";
-    } catch {
-      document.getElementById("ip").textContent = "error";
-      document.getElementById("isp").textContent = "error";
+      const r = await fetch("https://ipwho.is/");
+      const d = await r.json();
+      document.getElementById("ip").textContent = d.ip || "недоступно";
+      document.getElementById("isp").textContent = d.connection && d.connection.isp ? d.connection.isp : "недоступно";
+    } catch (e) {
+      console.error("IP fetch error:", e);
+      document.getElementById("ip").textContent = "недоступно";
+      document.getElementById("isp").textContent = "недоступно";
     }
   }
 
-  // --- fake throughput test (small image download) ---
+  // тест скорости (скачиваем маленькую картинку)
   async function measureSpeed() {
+    const el = document.getElementById("speed");
     try {
-      const url = "https://via.placeholder.com/2000x2000.png?" + Math.random();
+      const url = "https://via.placeholder.com/800x600.png?nocache=" + Math.random();
       const start = performance.now();
-      const res = await fetch(url);
-      const blob = await res.blob();
+      const r = await fetch(url);
+      const blob = await r.blob();
       const end = performance.now();
-      const sizeMb = blob.size / (1024*1024);
-      const timeSec = (end-start)/1000;
-      const mbps = (sizeMb*8/timeSec).toFixed(2);
-      document.getElementById("speed").textContent = mbps + " Mbps";
-    } catch {
-      document.getElementById("speed").textContent = "error";
+      const sizeMb = blob.size / (1024 * 1024);
+      const sec = (end - start) / 1000;
+      const mbps = (sizeMb * 8 / sec);
+      el.textContent = isFinite(mbps) && mbps > 0 ? mbps.toFixed(2) + " Mbps" : "недоступно";
+    } catch (e) {
+      console.error("Speed test error:", e);
+      el.textContent = "недоступно";
     }
   }
 
-  // --- init ---
+  // инициализация
   document.getElementById("browser").textContent = getBrowser();
   document.getElementById("support").textContent = randCode();
   document.getElementById("session").textContent = randCode();
-  document.getElementById("meta").textContent = randCode();
-
-  fetchIP();
-  measureSpeed();
-</script>
-</body>
-</html>
